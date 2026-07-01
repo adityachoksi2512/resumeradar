@@ -216,3 +216,12 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+.env
+models/model.pkl
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+*.ipynb
+demo_oop.py
+demo_pandas.py
+demo_parallel.py
