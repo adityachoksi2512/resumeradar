@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ResumeRadar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --accent:    #d97706;
+  --accent-l:  #f59e0b;
+  --accent-bg: rgba(217,119,6,0.12);
+  --accent-bd: rgba(217,119,6,0.25);
+  --border:    rgba(255,255,255,0.08);
+  --border2:   rgba(255,255,255,0.13);
+  --text:      #e2e8f0;
+  --muted:     #94a3b8;
+  --green:     #4ade80;
+  --amber:     #fbbf24;
+  --card:      rgba(255,255,255,0.04);
+  --card2:     rgba(255,255,255,0.07);
+  --mono:      'JetBrains Mono', monospace;
+  --sans:      'Inter', sans-serif;
+}
+
+body {
+  font-family: var(--sans);
+  background: linear-gradient(135deg, #0f0f1a 0%, #151525 50%, #0f1f3d 100%);
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  grid-template-rows: auto 1fr;
+  color: var(--text);
+}
+
+/* ── Header ── */
+header {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(0,0,0,0.25);
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.logo-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #d97706, #f59e0b);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.logo-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.logo-name span { color: var(--accent-l); }
+
+.header-right {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  background: var(--green);
+  border-radius: 50%;
+}
+
+/* ── Sidebar ── */
+aside {
+  border-right: 1px solid var(--border);
+  padding: 1.5rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  background: rgba(0,0,0,0.15);
+  overflow-y: auto;
+}
+
+.field-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.drop-zone {
+  border: 1px dashed rgba(255,255,255,0.15);
+  border-radius: 12px;
+  padding: 1.1rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  position: relative;
+  background: var(--card);
+}
+
+.drop-zone:hover, .drop-zone.drag-over {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.drop-zone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+
+.drop-icon { font-size: 1.3rem; margin-bottom: 0.3rem; }
+
+.drop-text {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.drop-text strong { color: var(--text); font-weight: 500; }
+
+.file-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+.file-item .fname {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text);
+}
+
+.file-item .remove {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1;
+  transition: color 0.1s;
+}
+
+.file-item .remove:hover { color: #f87171; }
+
+.senior-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--muted);
+  padding: 2px 2px 0;
+}
+
+.toggle {
+  position: relative;
+  width: 28px;
+  height: 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+
+.toggle-track {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.12);
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.toggle input:checked + .toggle-track { background: var(--accent); }
+
+.toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+  pointer-events: none;
+}
+
+.toggle input:checked ~ .toggle-thumb { transform: translateX(12px); }
+
+.screen-btn {
+  width: 100%;
+  padding: 11px;
+  background: linear-gradient(135deg, #d97706, #f59e0b);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.2s, transform 0.15s;
+  margin-top: auto;
+}
+
+.screen-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.screen-btn:active { transform: scale(0.98); }
+.screen-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; filter: none; }
+
+/* ── Main ── */
+main {
+  padding: 1.75rem 2rem;
+  overflow-y: auto;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--muted);
+  text-align: center;
+  gap: 10px;
+}
+
+.empty-icon { font-size: 2.5rem; opacity: 0.3; }
+.empty-text { font-size: 13px; line-height: 1.7; }
+
+/* ── Stats ── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 1.75rem;
+}
+
+.stat {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  backdrop-filter: blur(4px);
+}
+
+.stat-num {
+  font-size: 1.7rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin-bottom: 4px;
+  color: #fff;
+}
+
+.stat-num.accent { color: var(--accent-l); }
+.stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
+
+/* ── JD box ── */
+.jd-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 12px 12px 0;
+  padding: 14px 16px;
+  margin-bottom: 1.75rem;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--muted);
+  backdrop-filter: blur(4px);
+}
+
+.jd-box strong { color: var(--text); font-weight: 500; }
+
+.skill-pill {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin: 2px 2px 0 0;
+  background: var(--accent-bg);
+  color: var(--accent-l);
+  border: 1px solid var(--accent-bd);
+}
+
+/* ── Section headers ── */
+.section-head {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.candidates { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.75rem; }
+
+/* ── Candidate card ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  transition: border-color 0.15s, background 0.15s;
+  backdrop-filter: blur(4px);
+}
+
+.card:hover { background: var(--card2); border-color: var(--border2); }
+.card.shortlisted { border-left: 3px solid var(--accent); }
+.card.rejected { opacity: 0.45; }
+
+.card-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.cid {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: #fff;
+  flex: 1;
+}
+
+.badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.badge.shortlisted {
+  background: var(--accent-bg);
+  color: var(--accent-l);
+  border: 1px solid var(--accent-bd);
+}
+
+.badge.senior {
+  background: rgba(168,85,247,0.15);
+  color: #c4b5fd;
+  border: 1px solid rgba(168,85,247,0.3);
+}
+
+.score-pill {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.score-pill.high { background: var(--accent-bg); color: var(--accent-l); border: 1px solid var(--accent-bd); }
+.score-pill.mid  { background: rgba(251,191,36,0.12); color: var(--amber); border: 1px solid rgba(251,191,36,0.25); }
+.score-pill.low  { background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid var(--border); }
+
+/* Score bar */
+.score-bar-track {
+  height: 3px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px;
+  margin: 8px 0;
+  overflow: hidden;
+}
+
+.score-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  width: 0;
+  transition: width 0.7s cubic-bezier(0.16,1,0.3,1);
+}
+
+.score-bar-fill.high { background: linear-gradient(90deg, #d97706, #f59e0b); }
+.score-bar-fill.mid  { background: #f59e0b; }
+.score-bar-fill.low  { background: rgba(255,255,255,0.2); }
+
+.meta {
+  display: flex;
+  gap: 1.25rem;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.meta strong { color: var(--text); font-weight: 500; }
+
+.skills { display: flex; flex-wrap: wrap; gap: 5px; }
+
+.skill-tag {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.05);
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+
+.skill-tag.matched {
+  background: var(--accent-bg);
+  color: var(--accent-l);
+  border-color: var(--accent-bd);
+}
+
+/* ── Loading / error ── */
+.loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--muted);
+  padding: 2rem 0;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.1);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.error-msg {
+  background: rgba(248,113,113,0.08);
+  border: 1px solid rgba(248,113,113,0.2);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #fca5a5;
+  margin-bottom: 1rem;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+    <div class="logo-icon">🎯</div>
+    <div class="logo-name">Resume<span>Radar</span></div>
+  </div>
+  <div class="header-right">
+    <div class="status-dot"></div>
+    API connected
+  </div>
+</header>
+
+<aside>
+  <div>
+    <span class="field-label">Job description</span>
+    <div class="drop-zone" id="jd-drop">
+      <input type="file" id="jd-input" accept=".pdf,.docx" />
+      <div class="drop-icon">📄</div>
+      <div class="drop-text"><strong>Upload JD</strong><br>PDF or Word</div>
+    </div>
+    <div class="file-list" id="jd-list"></div>
+  </div>
+
+  <div>
+    <span class="field-label">Resumes</span>
+    <div class="drop-zone" id="resume-drop">
+      <input type="file" id="resume-input" accept=".pdf,.docx" multiple />
+      <div class="drop-icon">📋</div>
+      <div class="drop-text"><strong>Upload resumes</strong><br>PDF or Word · multiple files</div>
+    </div>
+    <div class="file-list" id="resume-list"></div>
+  </div>
+
+  <button class="screen-btn" id="screen-btn" disabled>Screen candidates →</button>
+</aside>
+
+<main id="main">
+  <div class="empty-state" id="empty">
+    <div class="empty-icon">🎯</div>
+    <div class="empty-text">Upload a job description and resumes,<br>then click <strong style="color:var(--text)">Screen candidates</strong>.</div>
+  </div>
+  <div id="results" style="display:none"></div>
+</main>
+
+<script>
+const API     = 'http://127.0.0.1:8000';
+const API_KEY = 'radar-key-2024';
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+let jdFile = null, resumeFiles = [], seniorMap = {};
+
+const jdInput     = document.getElementById('jd-input');
+const resumeInput = document.getElementById('resume-input');
+const jdList      = document.getElementById('jd-list');
+const resumeList  = document.getElementById('resume-list');
+const screenBtn   = document.getElementById('screen-btn');
+const emptyEl     = document.getElementById('empty');
+const resultsEl   = document.getElementById('results');
+
+function updateBtn() { screenBtn.disabled = !(jdFile && resumeFiles.length > 0); }
+
+function renderJdList() {
+  jdList.innerHTML = '';
+  if (!jdFile) return;
+  const d = document.createElement('div');
+  d.className = 'file-item';
+  d.innerHTML = `<span class="fname">${jdFile.name}</span><span class="remove" onclick="removeJd()">✕</span>`;
+  jdList.appendChild(d);
+}
+
+function removeJd() { jdFile = null; renderJdList(); updateBtn(); }
+
+function renderResumeList() {
+  resumeList.innerHTML = '';
+  resumeFiles.forEach((f, i) => {
+    const wrap = document.createElement('div');
+    const item = document.createElement('div');
+    item.className = 'file-item';
+    item.innerHTML = `<span class="fname">${f.name}</span><span class="remove" onclick="removeResume(${i})">✕</span>`;
+    const row = document.createElement('div');
+    row.className = 'senior-row';
+    const isSr = seniorMap[f.name] || false;
+    const safeName = f.name.replace(/'/g, "\\'");
+    row.innerHTML = `<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px">${f.name.split('.')[0]}</span>
+      <label class="toggle" title="Mark as senior">
+        <input type="checkbox" ${isSr?'checked':''} onchange="seniorMap['${safeName}']=this.checked"/>
+        <div class="toggle-track"></div>
+        <div class="toggle-thumb"></div>
+      </label>`;
+    wrap.appendChild(item);
+    wrap.appendChild(row);
+    resumeList.appendChild(wrap);
+  });
+}
+
+function removeResume(i) { resumeFiles.splice(i,1); renderResumeList(); updateBtn(); }
+
+jdInput.addEventListener('change', e => { jdFile = e.target.files[0]||null; renderJdList(); updateBtn(); });
+resumeInput.addEventListener('change', e => {
+  Array.from(e.target.files).forEach(f => { if(!resumeFiles.find(x=>x.name===f.name)) resumeFiles.push(f); });
+  renderResumeList(); updateBtn();
+});
+
+['jd-drop','resume-drop'].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('drag-over'); });
+  el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
+  el.addEventListener('drop', e => {
+    e.preventDefault(); el.classList.remove('drag-over');
+    const files = Array.from(e.dataTransfer.files);
+    if (id==='jd-drop') { jdFile=files[0]; renderJdList(); }
+    else { files.forEach(f => { if(!resumeFiles.find(x=>x.name===f.name)) resumeFiles.push(f); }); renderResumeList(); }
+    updateBtn();
+  });
+});
+
+screenBtn.addEventListener('click', runScreening);
+
+function showLoading(msg) {
+  emptyEl.style.display = 'none';
+  resultsEl.style.display = 'block';
+  resultsEl.innerHTML = `<div class="loading"><div class="spinner"></div>${msg}</div>`;
+}
+
+function showError(msg) {
+  resultsEl.innerHTML += `<div class="error-msg">${msg}</div>`;
+}
+
+async function runScreening() {
+  screenBtn.disabled = true;
+  showLoading('Parsing job description with Gemini…');
+  try {
+    const form = new FormData();
+    form.append('jd_file', jdFile);
+    resumeFiles.forEach(f => form.append('resumes', f));
+    const resp = await fetch(`${API}/screen-dynamic`, { method:'POST', body:form });
+    if (!resp.ok) {
+      const err = await resp.text();
+      throw new Error(`Screening failed (${resp.status}): ${err.slice(0,200)}`);
+    }
+    const data = await resp.json();
+    renderResults(data);
+  } catch(err) {
+    showError(err.message || 'Something went wrong. Is the API running?');
+  } finally {
+    screenBtn.disabled = false;
+    updateBtn();
+  }
+}
+
+function sc(s) { return s>=75?'high':s>=50?'mid':'low'; }
+
+function renderResults(data) {
+  const crit     = data.jd_criteria || {};
+  const reqSkills = new Set((crit.required_skills||[]).map(s=>s.toLowerCase()));
+  const shortlisted = data.ranked.filter(c=>c.shortlisted);
+  const rejected    = data.ranked.filter(c=>!c.shortlisted);
+
+  let html = `
+  <div class="stats-row">
+    <div class="stat"><div class="stat-num">${data.total_submitted}</div><div class="stat-label">Submitted</div></div>
+    <div class="stat"><div class="stat-num accent">${data.total_shortlisted}</div><div class="stat-label">Shortlisted</div></div>
+    <div class="stat"><div class="stat-num">${data.ranked[0]?.score??0}</div><div class="stat-label">Top score</div></div>
+    <div class="stat"><div class="stat-num">${data.total_submitted?Math.round(data.total_shortlisted/data.total_submitted*100):0}%</div><div class="stat-label">Pass rate</div></div>
+  </div>
+
+  <div class="jd-box">
+    <strong>Role:</strong> ${(crit.role||'').replace(/_/g,' ')} &nbsp;·&nbsp;
+    <strong>Exp:</strong> ${crit.min_experience??0}+ yrs &nbsp;·&nbsp;
+    <strong>Degree:</strong> ${crit.degree_required?'required':'not required'}<br>
+    <div style="margin-top:6px"><strong>Required skills:</strong><br>
+    ${(crit.required_skills||[]).map(s=>`<span class="skill-pill">${s}</span>`).join('')}
+    </div>
+  </div>`;
+
+  function card(c, sl) {
+    const cls = sc(c.score);
+    const skills = (c.skills||[]).map(s=>{
+      const m = reqSkills.has(s.toLowerCase());
+      return `<span class="skill-tag ${m?'matched':''}">${s}</span>`;
+    }).join('') || '<span class="skill-tag">no skills matched</span>';
+    return `
+    <div class="card ${sl?'shortlisted':'rejected'}">
+      <div class="card-top">
+        <span class="cid">${c.candidate_id}</span>
+        ${c.level==='senior'?'<span class="badge senior">senior</span>':''}
+        ${sl?'<span class="badge shortlisted">shortlisted</span>':''}
+        <span class="score-pill ${cls}">${c.score}</span>
+      </div>
+      <div class="score-bar-track"><div class="score-bar-fill ${cls}" data-score="${c.score}" style="width:0"></div></div>
+      <div class="meta">
+        <span><strong>${c.years_experience} yrs</strong> exp</span>
+        <span>Degree: <strong>${c.has_degree?'yes':'no'}</strong></span>
+      </div>
+      <div class="skills">${skills}</div>
+    </div>`;
+  }
+
+  if (shortlisted.length) {
+    html += `<div class="section-head">Shortlisted — ${shortlisted.length}</div><div class="candidates">`;
+    shortlisted.forEach(c => html += card(c, true));
+    html += '</div>';
+  }
+  if (rejected.length) {
+    html += `<div class="section-head" style="margin-top:1.5rem">Not shortlisted — ${rejected.length}</div><div class="candidates">`;
+    rejected.forEach(c => html += card(c, false));
+    html += '</div>';
+  }
+
+  resultsEl.innerHTML = html;
+
+  // ── Agent summary button ──
+  if (shortlisted.length > 0) {
+    const agentWrap = document.createElement('div');
+    agentWrap.style.marginTop = '1.5rem';
+    agentWrap.innerHTML = `
+      <div class="section-head">AI Candidate Briefs</div>
+      <div id="agent-area">
+        <button onclick="loadAgentSummary()" style="
+          padding: 9px 18px;
+          background: rgba(217,119,6,0.15);
+          color: #f59e0b;
+          border: 1px solid rgba(217,119,6,0.3);
+          border-radius: 8px;
+          font-family: var(--sans);
+          font-size: 13px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: background 0.15s;
+        ">✦ Generate candidate briefs with AI</button>
+      </div>`;
+    resultsEl.appendChild(agentWrap);
+    window._lastResults = data;
+  }
+
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.score-bar-fill').forEach(b => { b.style.width = b.dataset.score + '%'; });
+  });
+}
+
+async function loadAgentSummary() {
+  const area = document.getElementById('agent-area');
+  area.innerHTML = '<div class="loading"><div class="spinner"></div>Generating AI briefs with Gemini…</div>';
+
+  try {
+    const resp = await fetch(`${API}/agent-summary`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ranked: window._lastResults.ranked,
+        role: window._lastResults.jd_criteria?.role || 'the role'
+      })
+    });
+    if (!resp.ok) throw new Error(`Agent error: ${resp.status}`);
+    const data = await resp.json();
+    area.innerHTML = `<div style="
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-left: 3px solid #d97706;
+      border-radius: 0 12px 12px 0;
+      padding: 14px 16px;
+      font-size: 13px;
+      line-height: 1.8;
+      color: #cbd5e1;
+      white-space: pre-wrap;
+    ">${data.briefs}</div>`;
+  } catch(err) {
+    area.innerHTML = `<div class="error-msg">${err.message}</div>`;
+  }
+}
+</script>
+</body>
+</html>

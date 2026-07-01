@@ -1,0 +1,16 @@
+candidate_id,role_applied,years_experience,has_degree,skills_raw,department
+C001,ml_engineer,6,True,"python, machine learning, deep learning, docker, gcp, aws",Engineering
+C002,ml_engineer,2,True,"python, sql, tensorflow",Engineering
+C003,ml_engineer,4,False,"python, machine learning, docker, kubernetes, pytorch",Engineering
+C004,data_analyst,3,True,"python, sql, spark, tableau",Analytics
+C005,data_analyst,1,False,"sql, excel, tableau",Analytics
+C006,data_analyst,5,True,"python, sql, spark, machine learning",Analytics
+C007,ml_engineer,1,True,"python, tensorflow, keras",Engineering
+C008,ml_engineer,7,True,"python, machine learning, docker, gcp, spark, scala",Engineering
+C009,data_analyst,2,True,"python, sql, excel",Analytics
+C010,ml_engineer,3,False,"python, machine learning, aws, docker",Engineering
+C011,data_analyst,4,True,"python, sql, spark, deep learning",Analytics
+C012,ml_engineer,0,True,"python, sql",Engineering
+C013,data_analyst,6,True,"python, sql, spark, tableau, machine learning",Analytics
+C014,ml_engineer,2,False,"python, pytorch, keras",Engineering
+C015,data_analyst,3,True,"sql, python, excel, spark",Analytics
